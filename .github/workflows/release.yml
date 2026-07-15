@@ -30,7 +30,7 @@ jobs:
       - name: Package as zip
         run: |
           $version = "${{ github.ref_name }}"
-          Compress-Archive -Path dist/QLUToolbox/* -DestinationPath "QLUToolbox_$version.zip"
+          Compress-Archive -Path dist/QLUToolbox -DestinationPath "QLUToolbox_$version.zip"
 
       - name: Create Release and upload
         uses: softprops/action-gh-release@v2
