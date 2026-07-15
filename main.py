@@ -1,10 +1,19 @@
 from __future__ import annotations
 
 import argparse
+import sys
+
+
+def configure_streams() -> None:
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="replace")
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="QLU 工具箱")
+    parser.add_argument("--bridge", action="store_true")
     parser.add_argument("--worker", choices=("grade-export",))
     parser.add_argument("--year")
     parser.add_argument("--semester")
@@ -16,7 +25,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    configure_streams()
     arguments = build_parser().parse_args()
+    if arguments.bridge:
+        from qlu_toolbox.bridge import bridge_main
+
+        return bridge_main()
     if arguments.worker == "grade-export":
         missing = [
             name
@@ -36,9 +50,8 @@ def main() -> int:
             arguments.event_file,
         )
 
-    from qlu_toolbox.app import run
-
-    return run()
+    print("QLU 工具箱桌面界面已迁移至 Vue 3 + Electron。请使用 npm run dev 启动开发版。")
+    return 0
 
 
 if __name__ == "__main__":

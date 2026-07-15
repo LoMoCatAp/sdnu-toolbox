@@ -1,6 +1,6 @@
 [project]
 name = "qlu-toolbox"
-version = "1.0.0"
+version = "1.0.1"
 description = "面向齐鲁工业大学学生的非官方本地校园效率工具箱"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -9,7 +9,6 @@ authors = [
 ]
 dependencies = [
     "playwright==1.55.0",
-    "pyside6==6.9.2",
 ]
 
 [dependency-groups]

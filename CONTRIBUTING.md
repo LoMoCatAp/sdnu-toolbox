@@ -20,13 +20,22 @@
 
 ## 本地开发
 
-项目使用 uv 管理 Python 和依赖：
+需要 [Node.js](https://nodejs.org/) 和 [uv](https://docs.astral.sh/uv/)：
 
 ```powershell
+npm ci
 uv sync --locked
-uv run --locked python -B -m unittest discover -s tests -v
+npm run dev
 ```
 
-修改依赖请使用 `uv add` 或 `uv remove`，并一并提交更新后的 `pyproject.toml` 和 `uv.lock`。
+验证：
+
+```powershell
+uv run --locked python -B -m unittest discover -s tests -v
+npm run typecheck
+npm run build
+```
+
+修改 Python 依赖请使用 `uv add` 或 `uv remove`，修改前端依赖请使用 `npm install`，并一并提交更新后的锁文件。
 
 提交代码时请保持改动范围清晰，并说明验证方式。未经维护者确认，请勿提交包含学校账号、成绩数据、Cookie、日志或其他个人信息的测试材料。

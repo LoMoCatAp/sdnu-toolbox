@@ -7,12 +7,21 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 .uv-cache/
+.npm-cache/
 .coverage
 htmlcov/
 
 # 构建、部署与临时产物
 /build/
 /dist/
+/dist-renderer/
+/dist-electron/
+/backend-dist/
+/backend-build/
+/node_modules/
+/release/
+/release-*/
+/npm-cache/
 /deployment/
 /artifacts/
 /tmp/
@@ -23,6 +32,7 @@ htmlcov/
 nuitka-crash-report*.xml
 *.spec
 !QLUToolbox.spec
+!QLUToolboxWorker.spec
 
 # Playwright 与诊断输出
 /playwright-report/
@@ -49,6 +59,5 @@ Thumbs.db
 # 用户导出文件与本地发布压缩包
 *.xlsx
 *.xls
-/release/
 /*.zip
 /*.sha256
