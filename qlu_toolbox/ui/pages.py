@@ -3,18 +3,20 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import QPointF, Qt, QUrl, Signal
+from PySide6.QtGui import QDesktopServices, QPainter, QPalette, QPen
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
     QApplication,
     QFileDialog,
     QFrame,
+    QGridLayout,
     QHeaderView,
     QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListView,
     QMessageBox,
     QPushButton,
     QScrollArea,
@@ -46,6 +48,42 @@ def page_header(title: str, subtitle: str) -> tuple[QLabel, QLabel]:
     subtitle_label.setObjectName("PageSubtitle")
     subtitle_label.setWordWrap(True)
     return title_label, subtitle_label
+
+
+class SettingsComboBox(QComboBox):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setObjectName("SettingsCombo")
+        popup = QListView(self)
+        popup.setObjectName("SettingsComboPopup")
+        popup.setSpacing(2)
+        self.setView(popup)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = self.palette().color(QPalette.ColorRole.Text)
+        color.setAlpha(170)
+        painter.setPen(
+            QPen(
+                color,
+                1.6,
+                Qt.PenStyle.SolidLine,
+                Qt.PenCapStyle.RoundCap,
+                Qt.PenJoinStyle.RoundJoin,
+            )
+        )
+        center_x = self.width() - 17
+        center_y = self.height() / 2
+        painter.drawLine(
+            QPointF(center_x - 4, center_y - 2),
+            QPointF(center_x, center_y + 2),
+        )
+        painter.drawLine(
+            QPointF(center_x, center_y + 2),
+            QPointF(center_x + 4, center_y - 2),
+        )
 
 
 class ToolCard(QFrame):
@@ -243,50 +281,115 @@ class TasksPage(QFrame):
         title, subtitle = page_header("任务记录", "查看工具运行结果。清除记录不会删除已经导出的文件。")
         layout.addWidget(title)
         layout.addWidget(subtitle)
-        actions = QHBoxLayout()
+        toolbar = QFrame()
+        toolbar.setObjectName("TaskToolbar")
+        actions = QHBoxLayout(toolbar)
+        actions.setContentsMargins(14, 10, 14, 10)
+        actions.setSpacing(10)
+        self.summary_label = QLabel("正在读取任务记录…")
+        self.summary_label.setObjectName("TaskSummary")
+        actions.addWidget(self.summary_label)
+        actions.addStretch()
         refresh = QPushButton("刷新")
+        refresh.setProperty("compact", True)
         refresh.clicked.connect(self.refresh)
         clear = QPushButton("清除已结束记录")
         clear.setProperty("danger", True)
+        clear.setProperty("compact", True)
         clear.clicked.connect(self._clear)
-        actions.addStretch()
         actions.addWidget(refresh)
         actions.addWidget(clear)
-        layout.addLayout(actions)
-        self.table = QTableWidget(0, 5)
-        self.table.setHorizontalHeaderLabels(["状态", "工具", "参数", "时间", "结果 / 原因"])
+        layout.addWidget(toolbar)
+        self.table = QTableWidget(0, 4)
+        self.table.setHorizontalHeaderLabels(["状态", "任务信息", "时间", "结果 / 原因"])
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
+        header.resizeSection(0, 104)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed)
+        header.resizeSection(2, 158)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.table.setAlternatingRowColors(True)
         self.table.setShowGrid(False)
         self.table.setWordWrap(False)
         self.table.verticalHeader().setVisible(False)
-        self.table.verticalHeader().setDefaultSectionSize(42)
+        self.table.verticalHeader().setDefaultSectionSize(58)
         layout.addWidget(self.table, 1)
+        self.empty_state = QFrame()
+        self.empty_state.setObjectName("Card")
+        empty_layout = QVBoxLayout(self.empty_state)
+        empty_layout.setContentsMargins(24, 40, 24, 40)
+        empty_icon = QLabel("📋")
+        empty_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_icon.setStyleSheet("font-size: 32px;")
+        empty_layout.addWidget(empty_icon)
+        empty_text = QLabel("暂无任务记录")
+        empty_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_text.setStyleSheet("font-size: 17px; font-weight: 700; color: #68758A;")
+        empty_layout.addWidget(empty_text)
+        empty_hint = QLabel("完成工具操作后，运行结果会显示在这里。")
+        empty_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_hint.setObjectName("Muted")
+        empty_layout.addWidget(empty_hint)
+        layout.addWidget(self.empty_state, 1)
+        self.empty_state.hide()
         self.refresh()
 
     def refresh(self) -> None:
         records = self.tasks.list_recent(1000)
+        success_count = sum(record.status == "success" for record in records)
+        failed_count = sum(
+            record.status in {"failed", "interrupted"} for record in records
+        )
+        running_count = sum(record.status == "running" for record in records)
+        summary_parts = [f"共 {len(records)} 条", f"成功 {success_count}", f"失败 {failed_count}"]
+        if running_count:
+            summary_parts.append(f"进行中 {running_count}")
+        self.summary_label.setText("  ·  ".join(summary_parts))
         self.table.setRowCount(len(records))
+        has_records = len(records) > 0
+        self.table.setVisible(has_records)
+        self.empty_state.setVisible(not has_records)
         for row, record in enumerate(records):
+            status_cell = QFrame()
+            status_layout = QHBoxLayout(status_cell)
+            status_layout.setContentsMargins(10, 0, 10, 0)
+            status_badge = QLabel(_status_text(record.status))
+            status_badge.setObjectName("StatusBadge")
+            status_badge.setProperty("status", record.status)
+            status_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            status_badge.setFixedWidth(72)
+            status_badge.setMinimumHeight(24)
+            status_layout.addWidget(status_badge, 0, Qt.AlignmentFlag.AlignCenter)
+            self.table.setCellWidget(row, 0, status_cell)
+
+            task_cell = QFrame()
+            task_cell.setObjectName("TaskCell")
+            task_layout = QVBoxLayout(task_cell)
+            task_layout.setContentsMargins(12, 6, 12, 6)
+            task_layout.setSpacing(2)
+            tool_name = QLabel(record.tool_name)
+            tool_name.setObjectName("TaskTitle")
+            summary = QLabel(record.summary or "未记录参数")
+            summary.setObjectName("Muted")
+            summary.setToolTip(record.summary)
+            task_layout.addWidget(tool_name)
+            task_layout.addWidget(summary)
+            self.table.setCellWidget(row, 1, task_cell)
+
             result = record.result_path or record.error_message or "—"
-            values = [
-                _status_text(record.status),
-                record.tool_name,
-                record.summary,
-                _time_text(record.created_at),
-                result,
-            ]
-            for column, value in enumerate(values):
-                item = QTableWidgetItem(value)
-                item.setToolTip(value)
-                self.table.setItem(row, column, item)
+            time_item = QTableWidgetItem(_time_text(record.created_at))
+            time_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(row, 2, time_item)
+            result_item = QTableWidgetItem(result)
+            result_item.setToolTip(result)
+            result_item.setTextAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+            )
+            self.table.setItem(row, 3, result_item)
 
     def _clear(self) -> None:
         answer = QMessageBox.question(
@@ -317,7 +420,15 @@ class SettingsPage(QFrame):
         self.store = store
         self.paths = paths
         self.tasks = tasks
-        layout = QVBoxLayout(self)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setContentsMargins(0, 0, 0, 0)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.viewport().setAutoFillBackground(False)
+        content = QWidget()
+        layout = QVBoxLayout(content)
         layout.setContentsMargins(34, 30, 34, 30)
         layout.setSpacing(16)
         title, subtitle = page_header("设置", "管理默认保存位置、浏览器和本地数据。")
@@ -327,8 +438,11 @@ class SettingsPage(QFrame):
         card = QFrame()
         card.setObjectName("Card")
         form = QVBoxLayout(card)
-        form.setContentsMargins(22, 20, 22, 20)
+        form.setContentsMargins(24, 22, 24, 22)
         form.setSpacing(12)
+        section = QLabel("常规设置")
+        section.setObjectName("SectionHeading")
+        form.addWidget(section)
         form.addWidget(QLabel("默认保存位置"))
         output_row = QHBoxLayout()
         self.output = QLineEdit(settings.default_output_dir)
@@ -337,45 +451,114 @@ class SettingsPage(QFrame):
         output_row.addWidget(self.output, 1)
         output_row.addWidget(browse)
         form.addLayout(output_row)
-        form.addWidget(QLabel("首选浏览器"))
-        self.browser = QComboBox()
+        selectors = QGridLayout()
+        selectors.setHorizontalSpacing(18)
+        selectors.setVerticalSpacing(7)
+        selectors.addWidget(QLabel("首选浏览器"), 0, 0)
+        selectors.addWidget(QLabel("界面主题"), 0, 1)
+        self.browser = SettingsComboBox()
         self.browser.addItem("自动选择", "auto")
         self.browser.addItem("Microsoft Edge", "edge")
         self.browser.addItem("Google Chrome", "chrome")
         self.browser.addItem("兼容 Chromium", "chromium")
         self.browser.setCurrentIndex(max(0, self.browser.findData(settings.preferred_browser)))
-        form.addWidget(self.browser)
-        form.addWidget(QLabel("界面主题"))
-        self.theme = QComboBox()
+        self.browser.setMaxVisibleItems(8)
+        self.theme = SettingsComboBox()
         self.theme.addItem("浅色", "light")
         self.theme.addItem("深色", "dark")
         self.theme.addItem("跟随系统（当前按浅色显示）", "system")
         self.theme.setCurrentIndex(max(0, self.theme.findData(settings.theme)))
-        form.addWidget(self.theme)
+        self.theme.setMaxVisibleItems(8)
+        selectors.addWidget(self.browser, 1, 0)
+        selectors.addWidget(self.theme, 1, 1)
+        browser_hint = QLabel("自动选择会依次尝试 Edge、Chrome 和兼容 Chromium。")
+        browser_hint.setObjectName("FieldHint")
+        browser_hint.setWordWrap(True)
+        theme_hint = QLabel("主题设置保存后立即生效。")
+        theme_hint.setObjectName("FieldHint")
+        theme_hint.setWordWrap(True)
+        selectors.addWidget(browser_hint, 2, 0)
+        selectors.addWidget(theme_hint, 2, 1)
+        selectors.setColumnStretch(0, 1)
+        selectors.setColumnStretch(1, 1)
+        form.addLayout(selectors)
         self.keep_login = QCheckBox("保留浏览器登录状态，方便下次使用")
         self.keep_login.setChecked(settings.keep_login_state)
         self.check_updates = QCheckBox("启动时检查 GitHub 新版本（v1.0 暂不自动下载）")
         self.check_updates.setChecked(settings.check_updates)
         form.addWidget(self.keep_login)
         form.addWidget(self.check_updates)
+        update_row = QHBoxLayout()
         check_now = QPushButton("立即检查更新")
         check_now.clicked.connect(self.check_updates_requested)
-        form.addWidget(check_now, alignment=Qt.AlignmentFlag.AlignLeft)
+        update_row.addWidget(check_now)
+        update_row.addStretch()
         save = QPushButton("保存设置")
         save.setProperty("primary", True)
         save.clicked.connect(self._save)
-        form.addWidget(save, alignment=Qt.AlignmentFlag.AlignRight)
+        update_row.addWidget(save)
+        form.addLayout(update_row)
         layout.addWidget(card)
 
         data_card = QFrame()
         data_card.setObjectName("Card")
         data_layout = QVBoxLayout(data_card)
-        data_layout.setContentsMargins(22, 20, 22, 20)
-        data_layout.addWidget(QLabel("本地数据"))
-        hint = QLabel("可清理浏览器登录状态和运行日志。导出的 Excel 文件不会被删除。")
+        data_layout.setContentsMargins(24, 22, 24, 22)
+        data_layout.setSpacing(12)
+        data_section = QLabel("数据管理")
+        data_section.setObjectName("SectionHeading")
+        data_layout.addWidget(data_section)
+        hint = QLabel(
+            "以下位置用于保存设置、任务记录、日志和浏览器登录状态。"
+            "更新或替换软件目录不会删除这些数据。"
+        )
         hint.setObjectName("Muted")
         hint.setWordWrap(True)
         data_layout.addWidget(hint)
+
+        path_grid = QGridLayout()
+        path_grid.setHorizontalSpacing(10)
+        path_grid.setVerticalSpacing(8)
+        path_grid.setColumnStretch(1, 1)
+        path_entries = [
+            ("设置文件", self.store.path, self.store.path.parent),
+            ("任务记录", self.tasks.database_path, self.tasks.database_path.parent),
+            ("运行日志", self.paths.log_dir, self.paths.log_dir),
+            ("登录状态", self.paths.profile_dir, self.paths.profile_dir),
+            ("导出文件", Path(settings.default_output_dir), Path(settings.default_output_dir)),
+        ]
+        for row, (label_text, displayed_path, open_path) in enumerate(path_entries):
+            label = QLabel(label_text)
+            label.setObjectName("PathLabel")
+            field = QLineEdit(str(displayed_path))
+            field.setObjectName("DataPath")
+            field.setReadOnly(True)
+            field.setToolTip(str(displayed_path))
+            if label_text == "导出文件":
+                self.export_path_display = field
+            open_button = QPushButton("打开位置")
+            open_button.setProperty("compact", True)
+            if label_text == "导出文件":
+                open_button.clicked.connect(
+                    lambda _checked=False: self._open_folder(
+                        Path(self.output.text().strip()).expanduser()
+                    )
+                )
+            else:
+                open_button.clicked.connect(
+                    lambda _checked=False, path=open_path: self._open_folder(path)
+                )
+            path_grid.addWidget(label, row, 0)
+            path_grid.addWidget(field, row, 1)
+            path_grid.addWidget(open_button, row, 2)
+        data_layout.addLayout(path_grid)
+
+        privacy = QLabel(
+            "登录状态目录可能包含 Cookie 等敏感信息，请勿上传、分享或作为普通 Bug 附件提交。"
+        )
+        privacy.setObjectName("InfoBanner")
+        privacy.setWordWrap(True)
+        data_layout.addWidget(privacy)
         data_buttons = QHBoxLayout()
         clear_profile = QPushButton("清除登录状态")
         clear_profile.clicked.connect(self._clear_profiles)
@@ -387,6 +570,8 @@ class SettingsPage(QFrame):
         data_layout.addLayout(data_buttons)
         layout.addWidget(data_card)
         layout.addStretch()
+        scroll.setWidget(content)
+        outer_layout.addWidget(scroll)
 
     def _browse(self) -> None:
         selected = QFileDialog.getExistingDirectory(self, "选择默认保存位置", self.output.text())
@@ -401,6 +586,8 @@ class SettingsPage(QFrame):
             QMessageBox.warning(self, "无法保存", f"保存目录不可用：{exc}")
             return
         self.settings.default_output_dir = str(output)
+        self.export_path_display.setText(str(output))
+        self.export_path_display.setToolTip(str(output))
         self.settings.preferred_browser = str(self.browser.currentData())
         self.settings.keep_login_state = self.keep_login.isChecked()
         self.settings.theme = str(self.theme.currentData())
@@ -408,6 +595,15 @@ class SettingsPage(QFrame):
         self.store.save(self.settings)
         self.settings_saved.emit(self.settings.theme)
         QMessageBox.information(self, "设置已保存", "设置已经保存。")
+
+    def _open_folder(self, path: Path) -> None:
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            QMessageBox.warning(self, "无法打开", f"目录不可用：{exc}")
+            return
+        if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(path.resolve()))):
+            QMessageBox.warning(self, "无法打开", f"无法打开目录：{path}")
 
     def _clear_profiles(self) -> None:
         answer = QMessageBox.question(self, "清除登录状态", "确定清除工具箱保存的浏览器登录状态吗？")

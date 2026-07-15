@@ -8,7 +8,13 @@ from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QScrollArea  # noqa: E402
+from PySide6.QtWidgets import (  # noqa: E402
+    QApplication,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QScrollArea,
+)
 
 from qlu_toolbox.core.metadata import AUTHOR_EMAIL, AUTHOR_GITHUB_URL, AUTHOR_NAME  # noqa: E402
 from qlu_toolbox.core.paths import AppPaths  # noqa: E402
@@ -38,6 +44,12 @@ class UiSmokeTests(unittest.TestCase):
             registry.register(MANIFEST)
             window = MainWindow(paths, settings, settings_store, tasks, registry)
             self.assertEqual(window.stack.count(), 6)
+            self.assertEqual(window.tasks_page.table.columnCount(), 4)
+            self.assertEqual(window.settings_page.browser.objectName(), "SettingsCombo")
+            self.assertEqual(
+                len(window.settings_page.findChildren(QLineEdit, "DataPath")), 5
+            )
+            self.assertIsNotNone(window.settings_page.findChild(QScrollArea))
             window.open_tool(MANIFEST.id)
             self.assertEqual(window.stack.currentIndex(), MainWindow.PAGE_GRADE_EXPORT)
             self.assertEqual(window.windowTitle(), "QLU 工具箱")
