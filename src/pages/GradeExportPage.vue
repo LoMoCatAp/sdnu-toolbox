@@ -3,8 +3,9 @@ import { computed, reactive, ref } from 'vue'
 import {
   ArrowLeft, FileSpreadsheet, FolderOpen, Play, Square, Check, Circle,
   Loader2, LogIn, ExternalLink, RotateCcw, ChevronDown, ChevronUp,
-  ShieldCheck, Wifi, ChevronDown as SelectArrow, Calculator, ArrowRight, Sparkles,
+  ShieldCheck, Wifi, Calculator, ArrowRight, Sparkles,
 } from 'lucide-vue-next'
+import BaseSelect from '@/components/BaseSelect.vue'
 import { appStore } from '@/store'
 import type { BootstrapData, PageName } from '@/types'
 
@@ -16,6 +17,7 @@ const academicYears = Array.from({ length: 8 }, (_, index) => {
   const year = baseYear - index
   return `${year}-${year + 1}`
 })
+const academicYearOptions = academicYears.map(year => ({ value: year, label: `${year} 学年` }))
 const form = reactive({
   academicYear: academicYears[0],
   semester: props.data.semesters['1'],
@@ -94,15 +96,10 @@ function reset() {
     <div class="grade-layout">
       <section class="form-panel">
         <div class="panel-heading"><span>01</span><div><h2>导出设置</h2><p>选择需要查询的学期和保存位置</p></div></div>
-        <label class="field">
+        <div class="field">
           <span>学年</span>
-          <div class="select-wrap">
-            <select v-model="form.academicYear" :disabled="grade.running">
-              <option v-for="year in academicYears" :key="year" :value="year">{{ year }} 学年</option>
-            </select>
-            <SelectArrow :size="16" />
-          </div>
-        </label>
+          <BaseSelect v-model="form.academicYear" :options="academicYearOptions" :disabled="grade.running" aria-label="选择学年" />
+        </div>
         <label class="field">
           <span>学期</span>
           <div class="semester-options">
