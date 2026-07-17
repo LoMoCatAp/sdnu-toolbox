@@ -89,9 +89,6 @@
       "displayLanguageSelector": false,
       "installerIcon": "assets/qlu-toolbox.ico",
       "uninstallerIcon": "assets/qlu-toolbox.ico",
-      "installerHeader": "installer-assets/installerHeader.bmp",
-      "installerSidebar": "installer-assets/installerSidebar.bmp",
-      "uninstallerSidebar": "installer-assets/installerSidebar.bmp",
       "include": "installer-assets/installer.nsh"
     }
   }

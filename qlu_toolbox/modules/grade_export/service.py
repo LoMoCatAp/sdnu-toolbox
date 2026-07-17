@@ -267,9 +267,9 @@ def run_export(
                 emit,
                 "status",
                 stage="login",
-                message="请在浏览器中依次完成：1) WebVPN 统一身份认证 → 2) 在 VPN 内打开教务系统 → 3) 登录教务系统",
+                message="请在浏览器中依次完成：1) WebVPN SSO 一号通登录 → 2) VPN 内点击「本科教务」→ 3) 教务页面使用账号密码登录（勿点 SSO）",
             )
-            _event(emit, "log", message="登录 WebVPN 后，请在 VPN 门户内找到并进入教务系统")
+            _event(emit, "log", message="注意：教务登录页请使用账号+密码+验证码登录，不要点击 SSO 登录按钮（会导致循环跳转）")
             login_page = _wait_for_login(
                 context, emit, cancel_event, manual_continue_event
             )
@@ -294,6 +294,22 @@ def run_export(
                 timeout=30_000,
             )
 
+            # 先获取下拉框选项用于诊断
+            semester_options_diag = login_page.evaluate(
+                """
+                () => {
+                    const yearSelect = document.getElementById('xnm');
+                    const semesterSelect = document.getElementById('xqm');
+                    return {
+                        yearOptions: yearSelect ? Array.from(yearSelect.options).map(o => ({v: o.value, t: (o.textContent||'').trim()})) : [],
+                        semesterOptions: semesterSelect ? Array.from(semesterSelect.options).map(o => ({v: o.value, t: (o.textContent||'').trim()})) : [],
+                    };
+                }
+                """
+            )
+            _event(emit, "log", message=f"学年选项：{semester_options_diag['yearOptions']}")
+            _event(emit, "log", message=f"学期选项：{semester_options_diag['semesterOptions']}")
+
             selection = login_page.evaluate(
                 """
                 ({academicYear, semester}) => {
@@ -307,11 +323,12 @@ def run_export(
                         option.value === academicYear
                         || (option.textContent || '').includes(schoolYear)
                     );
-                    const semesterNames = {'3': ['1', '第一'], '12': ['2', '第二']};
+                    // 学期匹配：先按值，再按文字（支持多种文字表述）
+                    const semesterTexts = {'3': ['1', '第一', '一'], '12': ['2', '第二', '二']};
                     const semesterOption = Array.from(semesterSelect.options).find(option => {
                         if (option.value === semester) return true;
                         const text = (option.textContent || '').trim();
-                        return (semesterNames[semester] || []).some(name => text.includes(name));
+                        return (semesterTexts[semester] || []).some(name => text.includes(name));
                     });
                     if (!yearOption) return {ok: false, message: `成绩页面中没有 ${schoolYear} 学年`};
                     if (!semesterOption) return {ok: false, message: '成绩页面中没有所选学期'};
