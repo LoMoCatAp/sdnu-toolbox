@@ -334,8 +334,14 @@ def run_export(
                     if (!semesterOption) return {ok: false, message: '成绩页面中没有所选学期'};
                     yearSelect.value = yearOption.value;
                     semesterSelect.value = semesterOption.value;
+                    // 触发原生 change 事件
                     yearSelect.dispatchEvent(new Event('change', {bubbles: true}));
                     semesterSelect.dispatchEvent(new Event('change', {bubbles: true}));
+                    // 如果页面使用 chosen 插件，需要额外触发 chosen:updated
+                    if (window.jQuery) {
+                        window.jQuery(yearSelect).trigger('chosen:updated');
+                        window.jQuery(semesterSelect).trigger('chosen:updated');
+                    }
                     return {
                         ok: true,
                         academicYearValue: yearOption.value,
