@@ -56,6 +56,8 @@ async function start() {
   grade.stage = 'environment'
   grade.status = '正在启动任务…'
   try {
+    const semesterLabel = form.semester === '3' ? '第1学期' : form.semester === '12' ? '第2学期' : form.semester
+    grade.logs.push(`前端发送：学年=${form.academicYear} 学期=${form.semester} (${semesterLabel})`)
     const params = {
       academicYear: form.academicYear,
       semester: form.semester,
