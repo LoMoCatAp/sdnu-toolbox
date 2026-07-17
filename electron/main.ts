@@ -63,8 +63,8 @@ function registerIpc() {
     await shell.openExternal(url)
   })
   ipcMain.handle('system:check-update', async (_event, currentVersion: string) => {
-    const response = await fetch('https://api.github.com/repos/C1ouDreamW/qlu-toolbox/releases?per_page=20', {
-      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'QLUToolbox-UpdateChecker' },
+    const response = await fetch('https://api.github.com/repos/LoMoCatAp/sdnu-toolbox/releases?per_page=20', {
+      headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'SDNUToolbox-UpdateChecker' },
       signal: AbortSignal.timeout(10_000),
     })
     if (!response.ok) throw new Error(`GitHub 返回 ${response.status}`)
