@@ -1,0 +1,63 @@
+# Python 环境、缓存与测试产物
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv-cache/
+.npm-cache/
+.coverage
+htmlcov/
+
+# 构建、部署与临时产物
+/build/
+/dist/
+/dist-renderer/
+/dist-electron/
+/backend-dist/
+/backend-build/
+/node_modules/
+/release/
+/release-*/
+/npm-cache/
+/deployment/
+/artifacts/
+/tmp/
+/docs/
+*.build/
+*.dist/
+*.onefile-build/
+nuitka-crash-report*.xml
+*.spec
+!QLUToolbox.spec
+!QLUToolboxWorker.spec
+
+# Playwright 与诊断输出
+/playwright-report/
+/test-results/
+*.log
+*.sqlite3
+
+# 本地参考资料与工具配置
+/references/
+/.agents/
+/.idea/
+/.vscode/
+.DS_Store
+Thumbs.db
+
+# 本地环境变量与签名材料
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+
+# 用户导出文件与本地发布压缩包
+*.xlsx
+*.xls
+/*.zip
+/*.sha256

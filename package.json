@@ -1,0 +1,98 @@
+{
+  "name": "sdnu-toolbox",
+  "version": "1.0.0",
+  "private": true,
+  "author": "C1ouDreamW",
+  "description": "面向山东师范大学学生的非官方本地校园效率工具箱",
+  "main": "dist-electron/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p electron/tsconfig.json",
+    "build:backend": "uv run --locked pyinstaller --noconfirm --distpath backend-dist --workpath backend-build SDNUToolboxWorker.spec",
+    "build": "npm run typecheck && npm run build:renderer && npm run build:electron",
+    "dist": "npm run build:backend && npm run build && electron-builder --win dir",
+    "dist:zip": "npm run build:backend && npm run build && electron-builder --win zip",
+    "dist:installer": "npm run build:backend && npm run build && electron-builder --win nsis",
+    "dist:mac": "npm run build:backend && npm run build && electron-builder --mac dmg"
+  },
+  "dependencies": {
+    "lucide-vue-next": "^0.525.0",
+    "vue": "^3.5.17"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.0",
+    "concurrently": "^9.2.0",
+    "cross-env": "^7.0.3",
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.4",
+    "vue-tsc": "^3.0.1",
+    "wait-on": "^8.0.4"
+  },
+  "build": {
+    "appId": "student.sdnu.toolbox",
+    "productName": "SDNUToolbox",
+    "asar": true,
+    "compression": "maximum",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-renderer/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "assets/**/*"
+    ],
+    "win": {
+      "icon": "assets/qlu-toolbox.ico",
+      "target": ["nsis"],
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "backend-dist/SDNUToolboxWorker.exe",
+          "to": "backend/SDNUToolboxWorker.exe"
+        }
+      ]
+    },
+    "mac": {
+      "icon": "assets/qlu-toolbox.icns",
+      "category": "public.app-category.education",
+      "target": ["dmg"],
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "backend-dist/SDNUToolboxWorker",
+          "to": "backend/SDNUToolboxWorker"
+        }
+      ]
+    },
+    "dmg": {
+      "title": "SDNUToolbox ${version}",
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}"
+    },
+    "nsis": {
+      "artifactName": "SDNUToolbox_v${version}_${arch}_Setup.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "perMachine": false,
+      "selectPerMachineByDefault": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SDNUToolbox",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": ["zh_CN"],
+      "displayLanguageSelector": false,
+      "installerIcon": "assets/qlu-toolbox.ico",
+      "uninstallerIcon": "assets/qlu-toolbox.ico",
+      "installerHeader": "installer-assets/installerHeader.bmp",
+      "installerSidebar": "installer-assets/installerSidebar.bmp",
+      "uninstallerSidebar": "installer-assets/installerSidebar.bmp",
+      "include": "installer-assets/installer.nsh"
+    }
+  }
+}

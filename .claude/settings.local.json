@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx vue-tsc *)",
+      "Bash(npx -p typescript tsc -p electron/tsconfig.json --noEmit)",
+      "Bash(uv run *)",
+      "Bash(python -B -m unittest discover -s tests -v)",
+      "Read(//c/Users/LomoCat/**)",
+      "Read(//c/Users/LomoCat/Downloads/**)",
+      "Bash(python -c ' *)",
+      "Bash(npx -p typescript@5.8.3 -p vue-tsc@2.2.0 tsc --noEmit --project tsconfig.json)",
+      "Bash(python -c \"import json; p=json.load\\(open\\('package.json'\\)\\); print\\(f'Version: {p[\\\\\"version\\\\\"]}'\\); print\\(f'Product: {p[\\\\\"productName\\\\\"]}'\\)\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
