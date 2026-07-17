@@ -323,7 +323,6 @@ def run_export(
                         option.value === academicYear
                         || (option.textContent || '').includes(schoolYear)
                     );
-                    // 学期匹配：先按值，再按文字（支持多种文字表述）
                     const semesterTexts = {'3': ['1', '第一', '一'], '12': ['2', '第二', '二']};
                     const semesterOption = Array.from(semesterSelect.options).find(option => {
                         if (option.value === semester) return true;
@@ -332,15 +331,23 @@ def run_export(
                     });
                     if (!yearOption) return {ok: false, message: `成绩页面中没有 ${schoolYear} 学年`};
                     if (!semesterOption) return {ok: false, message: '成绩页面中没有所选学期'};
-                    yearSelect.value = yearOption.value;
-                    semesterSelect.value = semesterOption.value;
-                    // 触发原生 change 事件
-                    yearSelect.dispatchEvent(new Event('change', {bubbles: true}));
-                    semesterSelect.dispatchEvent(new Event('change', {bubbles: true}));
-                    // 如果页面使用 chosen 插件，需要额外触发 chosen:updated
-                    if (window.jQuery) {
-                        window.jQuery(yearSelect).trigger('chosen:updated');
-                        window.jQuery(semesterSelect).trigger('chosen:updated');
+
+                    // 使用 jQuery val() 设置值（兼容 chosen 插件）
+                    const $ = window.jQuery || window.$;
+                    if ($) {
+                        $('#xnm').val(yearOption.value);
+                        $('#xqm').val(semesterOption.value);
+                        // 刷新 chosen 插件 UI
+                        $('#xnm').trigger('chosen:updated');
+                        $('#xqm').trigger('chosen:updated');
+                        // 再触发 change 让页面逻辑感知
+                        $('#xnm').change();
+                        $('#xqm').change();
+                    } else {
+                        yearSelect.value = yearOption.value;
+                        semesterSelect.value = semesterOption.value;
+                        yearSelect.dispatchEvent(new Event('change', {bubbles: true}));
+                        semesterSelect.dispatchEvent(new Event('change', {bubbles: true}));
                     }
                     return {
                         ok: true,
@@ -355,7 +362,7 @@ def run_export(
                 raise ExportError(selection.get("message", "无法设置学年和学期"))
             export_year = selection["academicYearValue"]
             export_semester = selection["semesterValue"]
-            _event(emit, "log", message="已设置学年和学期")
+            _event(emit, "log", message=f"已设置学年={export_year} 学期={export_semester}")
 
             _event(emit, "log", message="正在点击查询按钮…")
             query_started = login_page.evaluate(
