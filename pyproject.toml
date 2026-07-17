@@ -5,7 +5,7 @@ description = "面向山东师范大学学生的非官方本地校园效率工�
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 authors = [
-    { name = "C1ouDreamW", email = "cloud_aaa@163.com" },
+    { name = "LoMoCatAp" },
 ]
 dependencies = [
     "playwright==1.55.0",

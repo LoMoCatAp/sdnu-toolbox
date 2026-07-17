@@ -2,7 +2,7 @@
   "name": "sdnu-toolbox",
   "version": "1.0.0",
   "private": true,
-  "author": "C1ouDreamW",
+  "author": "LoMoCatAp",
   "description": "面向山东师范大学学生的非官方本地校园效率工具箱",
   "main": "dist-electron/main.js",
   "type": "module",
