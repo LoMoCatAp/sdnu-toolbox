@@ -1,9 +1,9 @@
 {
-  "name": "qlu-toolbox",
-  "version": "1.1.0",
+  "name": "sdnu-toolbox",
+  "version": "1.0.0",
   "private": true,
   "author": "C1ouDreamW",
-  "description": "面向齐鲁工业大学学生的非官方本地校园效率工具箱",
+  "description": "面向山东师范大学学生的非官方本地校园效率工具箱",
   "main": "dist-electron/main.js",
   "type": "module",
   "scripts": {
@@ -11,7 +11,7 @@
     "typecheck": "vue-tsc --noEmit && tsc -p electron/tsconfig.json --noEmit",
     "build:renderer": "vite build",
     "build:electron": "tsc -p electron/tsconfig.json",
-    "build:backend": "uv run --locked pyinstaller --noconfirm --distpath backend-dist --workpath backend-build QLUToolboxWorker.spec",
+    "build:backend": "uv run --locked pyinstaller --noconfirm --distpath backend-dist --workpath backend-build SDNUToolboxWorker.spec",
     "build": "npm run typecheck && npm run build:renderer && npm run build:electron",
     "dist": "npm run build:backend && npm run build && electron-builder --win dir",
     "dist:zip": "npm run build:backend && npm run build && electron-builder --win zip",
@@ -34,8 +34,8 @@
     "wait-on": "^8.0.4"
   },
   "build": {
-    "appId": "student.qlu.toolbox",
-    "productName": "QLUToolbox",
+    "appId": "student.sdnu.toolbox",
+    "productName": "SDNUToolbox",
     "asar": true,
     "compression": "maximum",
     "directories": {
@@ -50,11 +50,11 @@
     "win": {
       "icon": "assets/qlu-toolbox.ico",
       "target": ["nsis"],
-      "artifactName": "QLUToolbox_v${version}_${arch}.${ext}",
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}",
       "extraResources": [
         {
-          "from": "backend-dist/QLUToolboxWorker.exe",
-          "to": "backend/QLUToolboxWorker.exe"
+          "from": "backend-dist/SDNUToolboxWorker.exe",
+          "to": "backend/SDNUToolboxWorker.exe"
         }
       ]
     },
@@ -62,27 +62,27 @@
       "icon": "assets/qlu-toolbox.icns",
       "category": "public.app-category.education",
       "target": ["dmg"],
-      "artifactName": "QLUToolbox_v${version}_${arch}.${ext}",
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}",
       "extraResources": [
         {
-          "from": "backend-dist/QLUToolboxWorker",
-          "to": "backend/QLUToolboxWorker"
+          "from": "backend-dist/SDNUToolboxWorker",
+          "to": "backend/SDNUToolboxWorker"
         }
       ]
     },
     "dmg": {
-      "title": "QLUToolbox ${version}",
-      "artifactName": "QLUToolbox_v${version}_${arch}.${ext}"
+      "title": "SDNUToolbox ${version}",
+      "artifactName": "SDNUToolbox_v${version}_${arch}.${ext}"
     },
     "nsis": {
-      "artifactName": "QLUToolbox_v${version}_${arch}_Setup.${ext}",
+      "artifactName": "SDNUToolbox_v${version}_${arch}_Setup.${ext}",
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "perMachine": false,
       "selectPerMachineByDefault": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "QLUToolbox",
+      "shortcutName": "SDNUToolbox",
       "runAfterFinish": true,
       "deleteAppDataOnUninstall": false,
       "installerLanguages": ["zh_CN"],

@@ -1,7 +1,7 @@
 [project]
-name = "qlu-toolbox"
-version = "1.1.0"
-description = "面向齐鲁工业大学学生的非官方本地校园效率工具箱"
+name = "sdnu-toolbox"
+version = "1.0.0"
+description = "面向山东师范大学学生的非官方本地校园效率工具箱"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 authors = [
@@ -18,9 +18,9 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/C1ouDreamW"
-Repository = "https://github.com/C1ouDreamW/qlu-toolbox"
-Issues = "https://github.com/C1ouDreamW/qlu-toolbox/issues"
-Releases = "https://github.com/C1ouDreamW/qlu-toolbox/releases"
+Repository = "https://github.com/C1ouDreamW/sdnu-toolbox"
+Issues = "https://github.com/C1ouDreamW/sdnu-toolbox/issues"
+Releases = "https://github.com/C1ouDreamW/sdnu-toolbox/releases"
 
 [tool.uv]
 package = false
