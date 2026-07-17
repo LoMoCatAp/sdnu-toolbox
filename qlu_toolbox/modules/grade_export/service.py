@@ -332,15 +332,29 @@ def run_export(
                     if (!yearOption) return {ok: false, message: `成绩页面中没有 ${schoolYear} 学年`};
                     if (!semesterOption) return {ok: false, message: '成绩页面中没有所选学期'};
 
-                    // 使用 jQuery val() 设置值（兼容 chosen 插件）
+                    // 使用 jQuery val() 设置 select 值
                     const $ = window.jQuery || window.$;
                     if ($) {
                         $('#xnm').val(yearOption.value);
                         $('#xqm').val(semesterOption.value);
-                        // 刷新 chosen 插件 UI
+                        // 触发 chosen 更新
                         $('#xnm').trigger('chosen:updated');
                         $('#xqm').trigger('chosen:updated');
-                        // 再触发 change 让页面逻辑感知
+                        // 直接点击 chosen 下拉菜单中对应的选项（最可靠的方式）
+                        const semesterIndex = Array.from(semesterSelect.options).indexOf(semesterOption);
+                        const yearIndex = Array.from(yearSelect.options).indexOf(yearOption);
+                        // 打开并点击 chosen 选项
+                        const semesterChosen = $('#xqm_chosen');
+                        const yearChosen = $('#xnm_chosen');
+                        if (semesterChosen.length && semesterIndex > 0) {
+                            semesterChosen.find('.chosen-single').trigger('mousedown');
+                            semesterChosen.find(`.chosen-results li[data-option-array-index="${semesterIndex}"]`).trigger('mouseup');
+                        }
+                        if (yearChosen.length && yearIndex > 0) {
+                            yearChosen.find('.chosen-single').trigger('mousedown');
+                            yearChosen.find(`.chosen-results li[data-option-array-index="${yearIndex}"]`).trigger('mouseup');
+                        }
+                        // 确保 change 事件触发
                         $('#xnm').change();
                         $('#xqm').change();
                     } else {
