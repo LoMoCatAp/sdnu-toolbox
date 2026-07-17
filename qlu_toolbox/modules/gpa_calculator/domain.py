@@ -177,10 +177,11 @@ def grade_point(score: str) -> Decimal | None:
     numeric = _decimal(score)
     if numeric is None or numeric < 0 or numeric > 100:
         return None
-    if numeric >= 95:
-        return Decimal("5.0")
+    # SDNU 绩点公式: (分数 - 50) / 10
+    # 例如: 100→5.0, 92→4.2, 85→3.5, 70→2.0, 60→1.0
     if numeric >= 60:
-        return numeric / Decimal("10") - Decimal("4.5")
+        point = (numeric - Decimal("50")) / Decimal("10")
+        return min(point, Decimal("5.0"))
     return Decimal("0")
 
 

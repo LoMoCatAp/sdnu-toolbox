@@ -27,8 +27,8 @@ class AppPaths:
         else:
             config_root = Path(os.environ.get("XDG_CONFIG_HOME", home / ".config"))
             data_root = Path(os.environ.get("XDG_DATA_HOME", home / ".local" / "share"))
-        config_dir = config_root / "QLUToolbox"
-        data_dir = data_root / "QLUToolbox"
+        config_dir = config_root / "SDNUToolbox"
+        data_dir = data_root / "SDNUToolbox"
         return cls(
             config_dir=config_dir,
             data_dir=data_dir,

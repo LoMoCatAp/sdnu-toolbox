@@ -93,10 +93,11 @@ class ExporterTests(unittest.TestCase):
             workbook_extension(b"<html>login</html>", "text/html")
 
     def test_logged_in_urls(self):
-        self.assertTrue(is_logged_in_url("https://jw.qlu.edu.cn/jwglxt/xtgl/index_initMenu.html?jsdm=xs"))
-        self.assertTrue(is_logged_in_url("https://jw.qlu.edu.cn/jwglxt/cjcx/test.html"))
-        self.assertTrue(is_logged_in_url("https://jw.qlu.edu.cn/jwglxt/anything?jsdm=xs"))
-        self.assertFalse(is_logged_in_url("https://jw.qlu.edu.cn/"))
+        self.assertTrue(is_logged_in_url("https://webvpn.sdnu.edu.cn:10443/http/encoded/jwglxt/xtgl/index_initMenu.html?jsdm=xs"))
+        self.assertTrue(is_logged_in_url("https://webvpn.sdnu.edu.cn:10443/http/encoded/jwglxt/cjcx/test.html"))
+        self.assertTrue(is_logged_in_url("https://webvpn.sdnu.edu.cn:10443/http/encoded/jwglxt/anything?jsdm=xs"))
+        self.assertFalse(is_logged_in_url("https://webvpn.sdnu.edu.cn/"))
+        self.assertTrue(is_logged_in_url("https://jwxt.sdnu.edu.cn/jwglxt/xtgl/index_initMenu.html?jsdm=xs"))
         self.assertFalse(is_logged_in_url("https://example.com/jwglxt/cjcx/test.html"))
 
     def test_output_name_contains_school_year(self):

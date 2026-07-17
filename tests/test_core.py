@@ -33,9 +33,9 @@ class AppPathsTests(unittest.TestCase):
                 patch.dict(os.environ, environment, clear=True),
             ):
                 paths = AppPaths.discover()
-            self.assertEqual(paths.config_dir, root / "roaming" / "QLUToolbox")
-            self.assertEqual(paths.data_dir, root / "local" / "QLUToolbox")
-            self.assertEqual(paths.browser_dir, root / "local" / "QLUToolbox" / "browsers")
+            self.assertEqual(paths.config_dir, root / "roaming" / "SDNUToolbox")
+            self.assertEqual(paths.data_dir, root / "local" / "SDNUToolbox")
+            self.assertEqual(paths.browser_dir, root / "local" / "SDNUToolbox" / "browsers")
 
     def test_discovers_macos_application_support_directory(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -46,7 +46,7 @@ class AppPathsTests(unittest.TestCase):
                 patch.dict(os.environ, {}, clear=True),
             ):
                 paths = AppPaths.discover()
-            expected = home / "Library" / "Application Support" / "QLUToolbox"
+            expected = home / "Library" / "Application Support" / "SDNUToolbox"
             self.assertEqual(paths.config_dir, expected)
             self.assertEqual(paths.data_dir, expected)
             self.assertEqual(paths.log_dir, expected / "logs")

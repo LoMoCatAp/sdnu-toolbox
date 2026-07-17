@@ -14,7 +14,7 @@ INSTALLED_SIZE_MIB = 350
 
 
 def configure_browser_environment(paths: AppPaths) -> None:
-    """Keep the managed browser in QLU Toolbox's own application-data directory."""
+    """Keep the managed browser in SDNU Toolbox's own application-data directory."""
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(paths.browser_dir)
 
 

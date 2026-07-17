@@ -10,13 +10,16 @@ from xml.etree import ElementTree
 from zipfile import BadZipFile, ZipFile
 
 
-BASE_URL = "https://jw.qlu.edu.cn/"
+# WebVPN 入口（校外访问必须先登录 VPN 门户）
+_VPN_PORTAL = "https://webvpn.sdnu.edu.cn/enlink/#/client/app"
+_VPN_BASE = "https://webvpn.sdnu.edu.cn:10443/http/webvpne2a23a051396a4977f8462a1d811be1cc63f9ad8ace4708376fa345655cc77ba"
+BASE_URL = _VPN_PORTAL
 HOME_URL_MARKER = "/jwglxt/xtgl/index_initMenu.html"
 SCORE_URL = (
-    "https://jw.qlu.edu.cn/jwglxt/cjcx/"
+    f"{_VPN_BASE}/jwglxt/cjcx/"
     "cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default"
 )
-EXPORT_URL = "https://jw.qlu.edu.cn/jwglxt/cjcx/cjcx_dcXsKccjList.html"
+EXPORT_URL = f"{_VPN_BASE}/jwglxt/cjcx/cjcx_dcXsKccjList.html"
 
 SEMESTERS = {"1": "3", "2": "12"}
 
@@ -97,7 +100,7 @@ def output_path(options: ExportOptions, extension: str) -> Path:
     semester = semester_label(options.semester_value)
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     base = options.output_dir / (
-        f"齐鲁工业大学分项成绩_{school_year}_第{semester}学期_{stamp}{extension}"
+        f"山东师范大学分项成绩_{school_year}_第{semester}学期_{stamp}{extension}"
     )
     if not base.exists():
         return base
@@ -185,17 +188,47 @@ def xlsx_semester_values(content: bytes) -> set[str]:
         raise ExportError("无法读取服务器返回的 Excel 文件") from exc
 
 
+def extract_base_prefix(page_url: str) -> str:
+    """从当前教务系统页面 URL 中提取基础前缀（兼容 VPN 和直连）。"""
+    parsed = urlparse(page_url)
+    path = parsed.path.rstrip("/")
+    # /http/<encoded>/jwglxt/... → 切除 /jwglxt 之后的部分
+    for marker in ("/jwglxt", "/http"):
+        if marker in path:
+            idx = path.index(marker)
+            prefix_path = path[:idx] if marker == "/jwglxt" else path[:idx + len("/http")]
+            # If the path after /http contains the encoded part, include it
+            if marker == "/http":
+                after_http = path[idx + len("/http"):]
+                # The encoded string is between /http/ and /jwglxt
+                jwglxt_idx = after_http.find("/jwglxt")
+                if jwglxt_idx > 0:
+                    prefix_path = path[:idx + len("/http") + jwglxt_idx]
+                else:
+                    prefix_path = path
+            return f"{parsed.scheme}://{parsed.hostname}" + (f":{parsed.port}" if parsed.port else "") + prefix_path
+    return f"{parsed.scheme}://{parsed.hostname}" + (f":{parsed.port}" if parsed.port else "")
+
+
+def build_score_url(base_prefix: str) -> str:
+    return f"{base_prefix}/jwglxt/cjcx/cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default"
+
+
+def build_export_url(base_prefix: str) -> str:
+    return f"{base_prefix}/jwglxt/cjcx/cjcx_dcXsKccjList.html"
+
+
 def is_logged_in_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
     except ValueError:
         return False
     path = parsed.path.rstrip("/")
-    if parsed.hostname != "jw.qlu.edu.cn":
+    if parsed.hostname not in ("webvpn.sdnu.edu.cn", "jwxt.sdnu.edu.cn", "172.23.0.169"):
         return False
     return (
         HOME_URL_MARKER in path
         or "/jwglxt/cjcx/" in f"{path}/"
-        or (path.startswith("/jwglxt/") and "jsdm=xs" in parsed.query)
+        or ("/jwglxt/" in path and "jsdm=xs" in parsed.query)
     )
 

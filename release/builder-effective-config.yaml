@@ -1,0 +1,54 @@
+directories:
+  output: release
+  buildResources: build
+appId: student.sdnu.toolbox
+productName: SDNUToolbox
+asar: true
+compression: maximum
+files:
+  - filter:
+      - dist-renderer/**/*
+      - dist-electron/**/*
+      - package.json
+      - assets/**/*
+win:
+  icon: assets/qlu-toolbox.ico
+  target:
+    - nsis
+  artifactName: SDNUToolbox_v${version}_${arch}.${ext}
+  extraResources:
+    - from: backend-dist/SDNUToolboxWorker.exe
+      to: backend/SDNUToolboxWorker.exe
+mac:
+  icon: assets/qlu-toolbox.icns
+  category: public.app-category.education
+  target:
+    - dmg
+  artifactName: SDNUToolbox_v${version}_${arch}.${ext}
+  extraResources:
+    - from: backend-dist/SDNUToolboxWorker
+      to: backend/SDNUToolboxWorker
+dmg:
+  title: SDNUToolbox ${version}
+  artifactName: SDNUToolbox_v${version}_${arch}.${ext}
+nsis:
+  artifactName: SDNUToolbox_v${version}_${arch}_Setup.${ext}
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  selectPerMachineByDefault: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: SDNUToolbox
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+  installerLanguages:
+    - zh_CN
+  displayLanguageSelector: false
+  installerIcon: assets/qlu-toolbox.ico
+  uninstallerIcon: assets/qlu-toolbox.ico
+  installerHeader: installer-assets/installerHeader.bmp
+  installerSidebar: installer-assets/installerSidebar.bmp
+  uninstallerSidebar: installer-assets/installerSidebar.bmp
+  include: installer-assets/installer.nsh
+electronVersion: 37.10.3

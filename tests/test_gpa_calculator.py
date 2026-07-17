@@ -51,8 +51,11 @@ def create_workbook(path: Path, data_rows: list[list[str]]) -> None:
 
 class GPACalculatorTests(unittest.TestCase):
     def test_grade_point_rules(self):
-        self.assertEqual(grade_point("95"), Decimal("5.0"))
-        self.assertEqual(grade_point("73"), Decimal("2.8"))
+        self.assertEqual(grade_point("100"), Decimal("5.0"))
+        self.assertEqual(grade_point("92"), Decimal("4.2"))
+        self.assertEqual(grade_point("85"), Decimal("3.5"))
+        self.assertEqual(grade_point("73"), Decimal("2.3"))
+        self.assertEqual(grade_point("60"), Decimal("1.0"))
         self.assertEqual(grade_point("59"), Decimal("0"))
         self.assertEqual(grade_point("A-"), Decimal("4.2"))
         self.assertEqual(grade_point("良好"), Decimal("3.5"))
@@ -71,7 +74,7 @@ class GPACalculatorTests(unittest.TestCase):
             self.assertEqual(len(result["courses"]), 2)
             english = result["courses"][0]
             self.assertEqual(english["final_score"], "73")
-            self.assertAlmostEqual(english["grade_point"], 2.8)
+            self.assertAlmostEqual(english["grade_point"], 2.3)
             self.assertTrue(english["included"])
             self.assertEqual(len(english["components"]), 2)
             experiment = result["courses"][1]
