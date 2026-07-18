@@ -323,50 +323,32 @@ def run_export(
                         option.value === academicYear
                         || (option.textContent || '').includes(schoolYear)
                     );
-                    const semesterTexts = {'3': ['1', '第一', '一'], '12': ['2', '第二', '二']};
                     const semesterOption = Array.from(semesterSelect.options).find(option => {
                         if (option.value === semester) return true;
                         const text = (option.textContent || '').trim();
-                        return (semesterTexts[semester] || []).some(name => text.includes(name));
+                        return ['3','12'].includes(option.value) && option.value === semester;
                     });
                     if (!yearOption) return {ok: false, message: `成绩页面中没有 ${schoolYear} 学年`};
-                    if (!semesterOption) return {ok: false, message: '成绩页面中没有所选学期'};
+                    if (!semesterOption) return {ok: false, message: `成绩页面中没有学期值=${semester}的选项`};
 
-                    // 使用 jQuery val() 设置 select 值
+                    // 销毁 chosen 插件，直接操作原生 select，再重新初始化
                     const $ = window.jQuery || window.$;
                     if ($) {
-                        $('#xnm').val(yearOption.value);
-                        $('#xqm').val(semesterOption.value);
-                        // 触发 chosen 更新
-                        $('#xnm').trigger('chosen:updated');
-                        $('#xqm').trigger('chosen:updated');
-                        // 直接点击 chosen 下拉菜单中对应的选项（最可靠的方式）
-                        const semesterIndex = Array.from(semesterSelect.options).indexOf(semesterOption);
-                        const yearIndex = Array.from(yearSelect.options).indexOf(yearOption);
-                        // 打开并点击 chosen 选项
-                        const semesterChosen = $('#xqm_chosen');
-                        const yearChosen = $('#xnm_chosen');
-                        if (semesterChosen.length && semesterIndex > 0) {
-                            semesterChosen.find('.chosen-single').trigger('mousedown');
-                            semesterChosen.find(`.chosen-results li[data-option-array-index="${semesterIndex}"]`).trigger('mouseup');
-                        }
-                        if (yearChosen.length && yearIndex > 0) {
-                            yearChosen.find('.chosen-single').trigger('mousedown');
-                            yearChosen.find(`.chosen-results li[data-option-array-index="${yearIndex}"]`).trigger('mouseup');
-                        }
-                        // 确保 change 事件触发
-                        $('#xnm').change();
-                        $('#xqm').change();
-                    } else {
-                        yearSelect.value = yearOption.value;
-                        semesterSelect.value = semesterOption.value;
-                        yearSelect.dispatchEvent(new Event('change', {bubbles: true}));
-                        semesterSelect.dispatchEvent(new Event('change', {bubbles: true}));
+                        // 销毁 chosen（如果存在）
+                        try { $('#xnm').chosen('destroy'); } catch(e) {}
+                        try { $('#xqm').chosen('destroy'); } catch(e) {}
                     }
+                    // 直接设置原生 select 值
+                    yearSelect.value = yearOption.value;
+                    semesterSelect.value = semesterOption.value;
+                    // 手动触发 change
+                    yearSelect.dispatchEvent(new Event('change', {bubbles: true}));
+                    semesterSelect.dispatchEvent(new Event('change', {bubbles: true}));
+
                     return {
                         ok: true,
-                        academicYearValue: yearOption.value,
-                        semesterValue: semesterOption.value,
+                        academicYearValue: yearSelect.value,
+                        semesterValue: semesterSelect.value,
                     };
                 }
                 """,
