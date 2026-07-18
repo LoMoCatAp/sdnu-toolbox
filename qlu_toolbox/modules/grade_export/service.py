@@ -267,9 +267,9 @@ def run_export(
                 emit,
                 "status",
                 stage="login",
-                message="请在浏览器中依次完成：1) WebVPN SSO 一号通登录 → 2) VPN 内点击「本科教务」→ 3) 教务页面使用账号密码登录（勿点 SSO）",
+                message="请在浏览器中依次完成：1) WebVPN 统一身份认证 → 2) 在 VPN 内打开教务系统 → 3) 登录教务系统",
             )
-            _event(emit, "log", message="注意：教务登录页请使用账号+密码+验证码登录，不要点击 SSO 登录按钮（会导致循环跳转）")
+            _event(emit, "log", message="登录 WebVPN 后，请在 VPN 门户内找到并进入教务系统")
             login_page = _wait_for_login(
                 context, emit, cancel_event, manual_continue_event
             )
